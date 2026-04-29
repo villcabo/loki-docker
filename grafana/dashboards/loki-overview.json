@@ -131,7 +131,11 @@
           "thresholds": {"mode": "absolute", "steps": [{"color": "purple", "value": null}]},
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          {"matcher": {"id": "byFrameRefID", "options": "A"}, "properties": [{"id": "displayName", "value": "systems"}]},
+          {"matcher": {"id": "byFrameRefID", "options": "B"}, "properties": [{"id": "displayName", "value": "services"}]},
+          {"matcher": {"id": "byFrameRefID", "options": "C"}, "properties": [{"id": "displayName", "value": "instances"}]}
+        ]
       },
       "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
       "id": 4,
