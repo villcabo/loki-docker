@@ -148,7 +148,7 @@
         {
           "datasource": {"type": "loki", "uid": "${datasource}"},
           "editorMode": "code",
-          "expr": "count(count by (system) ({system=~\"$system\", service=~\"$service\", instance=~\"$instance\"}[$__range]))",
+          "expr": "count(sum by (system) (count_over_time({system=~\"$system\", service=~\"$service\", instance=~\"$instance\"}[$__range])))",
           "legendFormat": "systems",
           "queryType": "instant",
           "refId": "A"
@@ -156,7 +156,7 @@
         {
           "datasource": {"type": "loki", "uid": "${datasource}"},
           "editorMode": "code",
-          "expr": "count(count by (service) ({system=~\"$system\", service=~\"$service\", instance=~\"$instance\"}[$__range]))",
+          "expr": "count(sum by (service) (count_over_time({system=~\"$system\", service=~\"$service\", instance=~\"$instance\"}[$__range])))",
           "legendFormat": "services",
           "queryType": "instant",
           "refId": "B"
@@ -164,7 +164,7 @@
         {
           "datasource": {"type": "loki", "uid": "${datasource}"},
           "editorMode": "code",
-          "expr": "count(count by (instance) ({system=~\"$system\", service=~\"$service\", instance=~\"$instance\"}[$__range]))",
+          "expr": "count(sum by (instance) (count_over_time({system=~\"$system\", service=~\"$service\", instance=~\"$instance\"}[$__range])))",
           "legendFormat": "instances",
           "queryType": "instant",
           "refId": "C"
