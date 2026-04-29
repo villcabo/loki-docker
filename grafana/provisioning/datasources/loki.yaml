@@ -1,7 +1,7 @@
 apiVersion: 1
 
 datasources:
-  - name: Loki
+  - name: Loki Local
     uid: loki-${LOKI_TENANT}
     type: loki
     access: proxy

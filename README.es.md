@@ -110,14 +110,13 @@ El stack incluye un servicio opcional de Grafana con datasource Loki auto-provis
 
 ```bash
 COMPOSE_FILE=docker-compose.yml:docker-compose.grafana.yml
-LOKI_TENANT=sistema-a              # valor enviado como X-Scope-OrgID por los clientes
 GRAFANA_ADMIN_PASSWORD=changeme    # default es admin/admin
 ```
 
 Después `./scripts/init.sh && docker compose up -d`. Grafana queda en http://localhost:3000.
 
 Qué se aprovisiona:
-- **Datasource** `Loki` (uid `loki-${LOKI_TENANT}`) apuntando a esta instancia, con el header `X-Scope-OrgID: ${LOKI_TENANT}` ya configurado. Alloy/Promtail deben mandar el mismo valor.
+- **Datasource** `Loki Local` (uid `loki-${LOKI_INSTANCE_NAME}`) apuntando a esta instancia, con el header `X-Scope-OrgID: ${LOKI_INSTANCE_NAME}` ya configurado. Alloy/Promtail deben mandar el mismo valor.
 - **Dashboard** `Loki — Overview` con:
   - Selector de **datasource** (para cambiar entre varios Lokis si aprovisionás más datasources).
   - Filtros de **Job** y **Level** (multi-valor, auto-descubiertos).
@@ -127,7 +126,7 @@ Qué se aprovisiona:
   - Top jobs por volumen (bar gauge).
   - Panel de logs con todo filtrado.
 
-Convención de nombres por tenant: cada instancia de Loki tiene su propio `LOKI_TENANT` (default = `LOKI_INSTANCE_NAME`). Los clientes Alloy/Promtail deben mandar exactamente ese valor en el header `X-Scope-OrgID`. Si `LOKI_AUTH_ENABLED=false`, el header se manda pero Loki lo ignora — útil mientras estás cableando.
+Convención de nombres por tenant: por default el tenant es igual a `LOKI_INSTANCE_NAME`. Los clientes Alloy/Promtail deben mandar ese mismo valor en el header `X-Scope-OrgID`. Si `LOKI_AUTH_ENABLED=false`, el header se manda pero Loki lo ignora — útil mientras estás cableando. Para usar un nombre de tenant distinto al instance name, setear `LOKI_TENANT` en `.env`.
 
 ---
 
@@ -188,12 +187,11 @@ Todas las variables se leen del `.env`. Todas son opcionales — si están comen
 | Variable | Default | Descripción |
 |----------|---------|-------------|
 | `COMPOSE_FILE` | _(no definido)_ | Setear a `docker-compose.yml:docker-compose.grafana.yml` para levantar Grafana junto con Loki. |
-| `LOKI_TENANT` | `${LOKI_INSTANCE_NAME}` | Valor de X-Scope-OrgID que envía la datasource de Grafana. Alloy/Promtail deben coincidir. |
 | `GRAFANA_VERSION` | `13.0.1` | Tag de la imagen oficial `grafana/grafana`. |
 | `GRAFANA_ADMIN_USER` | `admin` | Usuario admin inicial. |
 | `GRAFANA_ADMIN_PASSWORD` | `admin` | Password admin inicial. **Cambiar en producción**. |
 | `GRAFANA_LOG_LEVEL` | `warn` | Verbosidad del log de Grafana. |
-| `GRAFANA_PORT` | `3000` | Puerto del host para la UI de Grafana. |
+| `GRAFANA_PORT` | `127.0.0.1:3000` | Puerto del host para la UI de Grafana. Bindea a loopback por default; cambiar a `0.0.0.0:3000` para exponer en LAN. |
 | `GRAFANA_LOKI_URL` | `http://loki:3100` | URL que usa Grafana para llegar a Loki (red compartida). |
 | `GRAFANA_DATA_DIR` | `./data/grafana` | Directorio del host para el SQLite de Grafana, plugins, etc. |
 | `GRAFANA_CPU_RESERVATION` | `0.1` | CPU mínimo reservado. |
