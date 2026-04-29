@@ -327,3 +327,33 @@ Crearla: `docker network create --driver bridge loki_router`.
 
 **Picos de CPU sincronizados entre varios Lokis:**
 El `compaction_interval=10m` corre a la vez en todos. Para desfasar, editar `config/loki-*.yaml` y darle un valor distinto a cada sistema (p.ej. `11m`, `13m`).
+
+## 👨‍💻 Autor
+
+<div align="center">
+  <img src="https://github.com/villcabo.png" width="100" height="100" style="border-radius: 50%;" alt="villcabo">
+  <br/>
+  <strong>Bismarck Villca</strong>
+  <br/>
+  <br/>
+  <a href="https://github.com/villcabo">
+    <img src="https://img.shields.io/badge/GitHub-villcabo-blue?style=for-the-badge&logo=github" alt="GitHub Profile">
+  </a>
+  <br/>
+  <a href="https://linkedin.com/in/villcabo">
+    <img src="https://img.shields.io/badge/LinkedIn-villcabo-0A66C2?style=for-the-badge&logo=linkedin" alt="LinkedIn Profile">
+  </a>
+  <br/>
+  <a href="https://facebook.com/villcabo">
+    <img src="https://img.shields.io/badge/Facebook-villcabo-1877F2?style=for-the-badge&logo=facebook" alt="Facebook Profile">
+  </a>
+  <br/>
+  <a href="https://x.com/villcabo">
+    <img src="https://img.shields.io/badge/X-@villcabo-000000?style=for-the-badge&logo=x" alt="X Profile">
+  </a>
+  <br/>
+</div>
+
+---
+
+⭐ **Si este proyecto te ayudó, ¡considerá darle una estrellita!** ⭐

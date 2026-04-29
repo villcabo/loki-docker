@@ -327,3 +327,33 @@ Create it: `docker network create --driver bridge loki_router`.
 
 **Synchronized CPU spikes across multiple Lokis:**
 The default `compaction_interval=10m` runs at the same time on all instances. To stagger them, edit `config/loki-*.yaml` and give each system a different value (e.g. `11m`, `13m`).
+
+## 👨‍💻 Author
+
+<div align="center">
+  <img src="https://github.com/villcabo.png" width="100" height="100" style="border-radius: 50%;" alt="villcabo">
+  <br/>
+  <strong>Bismarck Villca</strong>
+  <br/>
+  <br/>
+  <a href="https://github.com/villcabo">
+    <img src="https://img.shields.io/badge/GitHub-villcabo-blue?style=for-the-badge&logo=github" alt="GitHub Profile">
+  </a>
+  <br/>
+  <a href="https://linkedin.com/in/villcabo">
+    <img src="https://img.shields.io/badge/LinkedIn-villcabo-0A66C2?style=for-the-badge&logo=linkedin" alt="LinkedIn Profile">
+  </a>
+  <br/>
+  <a href="https://facebook.com/villcabo">
+    <img src="https://img.shields.io/badge/Facebook-villcabo-1877F2?style=for-the-badge&logo=facebook" alt="Facebook Profile">
+  </a>
+  <br/>
+  <a href="https://x.com/villcabo">
+    <img src="https://img.shields.io/badge/X-@villcabo-000000?style=for-the-badge&logo=x" alt="X Profile">
+  </a>
+  <br/>
+</div>
+
+---
+
+⭐ **If this project helped you, please consider giving it a star!** ⭐
