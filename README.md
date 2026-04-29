@@ -107,6 +107,72 @@ This is **not** network security. To protect Loki from the internet, use a rever
 
 ---
 
+## Configuration reference
+
+All variables are read from `.env`. Every value is optional — if commented out or missing, the default below is applied.
+
+### General
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LOKI_VERSION` | `3.7.1` | Tag of the official `grafana/loki` image. Pin to an exact version. |
+| `LOKI_INSTANCE_NAME` | `default` | Unique name for this instance. Used as suffix for container_name and (by convention) as the bucket name in MinIO. |
+| `COMPOSE_PROFILES` | `monolithic` | Deployment mode: `monolithic` (single container, all components) or `scalable` (read/write/backend, requires s3 backend). Native Compose variable. |
+| `LOKI_DATA_DIR` | `./data/loki` | Host directory where Loki persists WAL, TSDB index, compactor working dir and (filesystem backend only) chunks. |
+| `LOKI_ANALYTICS_REPORTING` | `false` | If `true`, sends usage diagnostics to Grafana Labs. Off by default. |
+
+### Resources
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LOKI_CPU_RESERVATION` | `0.25` | Minimum CPU guaranteed by Docker for the container. |
+| `LOKI_MEMORY_RESERVATION` | `256M` | Minimum memory guaranteed by Docker for the container. |
+| `LOKI_CPU_LIMIT` | `1.0` | Hard CPU ceiling. |
+| `LOKI_MEMORY_LIMIT` | `1G` | Hard memory ceiling. Above this, the container is OOM-killed. |
+
+### Network
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LOKI_HTTP_PORT` | `3100` | Host port for Loki's HTTP API. Change if it collides with another Loki on the same host. |
+| `LOKI_GRPC_PORT` | `9095` | Host port for Loki's gRPC API. |
+| `LOKI_ROUTER_NETWORK` | `loki_router` | External Docker network shared with MinIO/Grafana/etc. Must exist before `up`. |
+
+### Retention and ingestion limits
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LOKI_RETENTION_PERIOD` | `2160h` (90d) | How long logs are kept before the compactor deletes them. |
+| `LOKI_MAX_QUERY_LENGTH` | `2161h` | Maximum time range a single query can cover. Slightly above retention so queries cover the full range. |
+| `LOKI_INGESTION_RATE_MB` | `4` | Sustained ingestion rate per tenant, in MB/s. |
+| `LOKI_INGESTION_BURST_MB` | `6` | Burst size allowed above the sustained rate, in MB. |
+
+### Multi-tenant
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LOKI_AUTH_ENABLED` | `false` | If `true`, every push/query must include `X-Scope-OrgID: <name>` and Loki separates data per tenant. If `false`, all data lands in tenant `fake`. Not network auth. |
+
+### Storage backend
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LOKI_STORAGE_BACKEND` | `filesystem` | Where chunks live: `filesystem` (local disk, single-node only) or `s3` (external MinIO/S3, required for scalable mode). |
+
+### S3 / MinIO (only when `LOKI_STORAGE_BACKEND=s3`)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `S3_ENDPOINT` | _(empty)_ | MinIO/S3 URL. Use `https://` when behind a TLS reverse proxy. |
+| `S3_BUCKET` | _(empty)_ | Bucket dedicated to this instance. Must exist before starting Loki. |
+| `S3_ACCESS_KEY` | _(empty)_ | Service account access key with read/write on the bucket. |
+| `S3_SECRET_KEY` | _(empty)_ | Service account secret key. |
+| `S3_REGION` | `us-east-1` | Required by the AWS SDK; MinIO ignores it. |
+| `S3_FORCE_PATH_STYLE` | `true` | Use path-style URLs (`endpoint/bucket/...`). MinIO requires this. |
+| `S3_INSECURE` | `false` | Set to `true` only when `S3_ENDPOINT` is `http://` (no TLS). |
+
+---
+
 ## Operations
 
 ```bash
