@@ -37,16 +37,13 @@ docker network connect loki_router minio
 cp .env.example .env
 # Editar .env: al menos LOKI_INSTANCE_NAME (y creds de S3 si usás backend s3)
 
-# 2. Crear el directorio de datos
+# 2. Crear el directorio de datos y ajustar ownership (uid 10001 en el contenedor)
 ./scripts/init.sh
 
-# 3. Ajustar ownership (Loki corre como uid 10001 dentro del contenedor)
-sudo chown -R 10001:10001 ./data/loki
-
-# 4. Levantar (el modo se lee de COMPOSE_PROFILES en .env)
+# 3. Levantar (el modo se lee de COMPOSE_PROFILES en .env)
 docker compose up -d
 
-# 5. Verificar
+# 4. Verificar
 docker compose ps
 curl -s http://localhost:3100/ready
 ```
