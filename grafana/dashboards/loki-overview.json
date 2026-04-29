@@ -44,7 +44,7 @@
         "reduceOptions": {"calcs": ["sum"], "fields": "", "values": false},
         "textMode": "auto"
       },
-      "pluginVersion": "11.4.0",
+      "pluginVersion": "13.0.1",
       "targets": [
         {
           "datasource": {"type": "loki", "uid": "${datasource}"},
@@ -84,7 +84,7 @@
         "reduceOptions": {"calcs": ["sum"], "fields": "", "values": false},
         "textMode": "auto"
       },
-      "pluginVersion": "11.4.0",
+      "pluginVersion": "13.0.1",
       "targets": [
         {
           "datasource": {"type": "loki", "uid": "${datasource}"},
@@ -124,7 +124,7 @@
         "reduceOptions": {"calcs": ["sum"], "fields": "", "values": false},
         "textMode": "auto"
       },
-      "pluginVersion": "11.4.0",
+      "pluginVersion": "13.0.1",
       "targets": [
         {
           "datasource": {"type": "loki", "uid": "${datasource}"},
@@ -156,7 +156,7 @@
         "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
         "showUnfilled": true
       },
-      "pluginVersion": "11.4.0",
+      "pluginVersion": "13.0.1",
       "targets": [
         {
           "datasource": {"type": "loki", "uid": "${datasource}"},

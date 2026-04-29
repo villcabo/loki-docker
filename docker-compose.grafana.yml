@@ -1,6 +1,6 @@
 services:
   grafana:
-    image: grafana/grafana:${GRAFANA_VERSION:-11.4.0}
+    image: grafana/grafana:${GRAFANA_VERSION:-13.0.1}
     restart: unless-stopped
     container_name: grafana-${LOKI_INSTANCE_NAME:-default}
     user: "472:0"
@@ -19,7 +19,7 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports:
-      - "${GRAFANA_PORT:-3000}:3000"
+      - "${GRAFANA_PORT:-127.0.0.1:3000}:3000"
     networks:
       - loki
       - loki_router

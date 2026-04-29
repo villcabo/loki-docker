@@ -189,7 +189,7 @@ All variables are read from `.env`. Every value is optional — if commented out
 |----------|---------|-------------|
 | `COMPOSE_FILE` | _(unset)_ | Set to `docker-compose.yml:docker-compose.grafana.yml` to bring Grafana up alongside Loki. |
 | `LOKI_TENANT` | `${LOKI_INSTANCE_NAME}` | X-Scope-OrgID value sent by Grafana's datasource. Alloy/Promtail must match this. |
-| `GRAFANA_VERSION` | `11.4.0` | Tag of the official `grafana/grafana` image. |
+| `GRAFANA_VERSION` | `13.0.1` | Tag of the official `grafana/grafana` image. |
 | `GRAFANA_ADMIN_USER` | `admin` | Initial admin user. |
 | `GRAFANA_ADMIN_PASSWORD` | `admin` | Initial admin password. **Change in production**. |
 | `GRAFANA_LOG_LEVEL` | `warn` | Grafana log verbosity. |
