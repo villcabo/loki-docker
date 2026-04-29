@@ -28,7 +28,7 @@ x-loki-common: &loki-common
       max-file: "3"
   networks:
     - loki
-    - s3
+    - loki_router
 
 x-loki-resources: &loki-resources
   deploy:
@@ -98,8 +98,9 @@ networks:
   loki:
     name: loki-${LOKI_INSTANCE_NAME:-default}
     driver: bridge
-  # Network externa donde vive el MinIO (creada por el stack de minio-docker).
-  # Solo se usa cuando LOKI_STORAGE_BACKEND=s3 y MinIO corre en otro compose.
-  s3:
-    name: ${LOKI_S3_NETWORK:-minio_router}
+  # Network externa creada manualmente para enlazar Loki con servicios externos
+  # (MinIO, Grafana, etc). Crear antes de levantar:
+  #   docker network create --driver bridge loki_router
+  loki_router:
+    name: ${LOKI_NETWORK:-loki_router}
     external: true
