@@ -10,8 +10,6 @@ Production-ready Loki on Docker Compose. One instance per system, minimal resour
 - **Resources:** `0.25 CPU / 256M` reserved, `1 CPU / 1G` limit
 - **Default retention:** 90 days
 
-See `PRD.md` for the full design rationale.
-
 ---
 
 ## Get the code
@@ -20,14 +18,12 @@ Clone with the default folder name `loki-docker`:
 
 ```bash
 git clone https://github.com/villcabo/loki-docker.git
-cd loki-docker
 ```
 
 Or clone into a custom folder name (recommended when you run **one Loki per system** on the same host, so each instance lives in its own directory):
 
 ```bash
-git clone https://github.com/villcabo/loki-docker.git loki-docker-payment
-cd loki-docker-payment
+git clone https://github.com/villcabo/loki-docker.git loki-docker-custom
 ```
 
 ---

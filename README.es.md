@@ -10,8 +10,6 @@ Loki listo para producción en Docker Compose. Una instancia por sistema, con re
 - **Recursos:** reserva `0.25 CPU / 256M`, limit `1 CPU / 1G`
 - **Retención default:** 90 días
 
-Ver `PRD.md` para el diseño completo.
-
 ---
 
 ## Obtener el código
@@ -20,14 +18,12 @@ Clonar con el nombre de carpeta por default `loki-docker`:
 
 ```bash
 git clone https://github.com/villcabo/loki-docker.git
-cd loki-docker
 ```
 
 O clonar con un nombre custom (recomendado cuando corrés **un Loki por sistema** en el mismo host, así cada instancia vive en su propio directorio):
 
 ```bash
-git clone https://github.com/villcabo/loki-docker.git loki-docker-payment
-cd loki-docker-payment
+git clone https://github.com/villcabo/loki-docker.git loki-docker-custom
 ```
 
 ---
