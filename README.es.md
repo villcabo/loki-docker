@@ -104,6 +104,33 @@ Esto **no** es seguridad de red. Para proteger Loki de internet, usar reverse pr
 
 ---
 
+## Grafana (opcional)
+
+El stack incluye un servicio opcional de Grafana con datasource Loki auto-provisionada y un dashboard inicial. Para habilitarlo, descomentá en `.env`:
+
+```bash
+COMPOSE_FILE=docker-compose.yml:docker-compose.grafana.yml
+LOKI_TENANT=sistema-a              # valor enviado como X-Scope-OrgID por los clientes
+GRAFANA_ADMIN_PASSWORD=changeme    # default es admin/admin
+```
+
+Después `./scripts/init.sh && docker compose up -d`. Grafana queda en http://localhost:3000.
+
+Qué se aprovisiona:
+- **Datasource** `Loki` (uid `loki-${LOKI_TENANT}`) apuntando a esta instancia, con el header `X-Scope-OrgID: ${LOKI_TENANT}` ya configurado. Alloy/Promtail deben mandar el mismo valor.
+- **Dashboard** `Loki — Overview` con:
+  - Selector de **datasource** (para cambiar entre varios Lokis si aprovisionás más datasources).
+  - Filtros de **Job** y **Level** (multi-valor, auto-descubiertos).
+  - Caja de **Search** con regex libre sobre las líneas.
+  - Stat panels de total / errores / warnings.
+  - Time series de volumen de logs por nivel.
+  - Top jobs por volumen (bar gauge).
+  - Panel de logs con todo filtrado.
+
+Convención de nombres por tenant: cada instancia de Loki tiene su propio `LOKI_TENANT` (default = `LOKI_INSTANCE_NAME`). Los clientes Alloy/Promtail deben mandar exactamente ese valor en el header `X-Scope-OrgID`. Si `LOKI_AUTH_ENABLED=false`, el header se manda pero Loki lo ignora — útil mientras estás cableando.
+
+---
+
 ## Referencia de configuración
 
 Todas las variables se leen del `.env`. Todas son opcionales — si están comentadas o ausentes, se aplica el default mostrado abajo.
@@ -155,6 +182,24 @@ Todas las variables se leen del `.env`. Todas son opcionales — si están comen
 | Variable | Default | Descripción |
 |----------|---------|-------------|
 | `LOKI_STORAGE_BACKEND` | `filesystem` | Dónde viven los chunks: `filesystem` (disco local, solo single-node) o `s3` (MinIO/S3 externo, requerido para modo scalable). |
+
+### Grafana (solo cuando se activa vía `COMPOSE_FILE`)
+
+| Variable | Default | Descripción |
+|----------|---------|-------------|
+| `COMPOSE_FILE` | _(no definido)_ | Setear a `docker-compose.yml:docker-compose.grafana.yml` para levantar Grafana junto con Loki. |
+| `LOKI_TENANT` | `${LOKI_INSTANCE_NAME}` | Valor de X-Scope-OrgID que envía la datasource de Grafana. Alloy/Promtail deben coincidir. |
+| `GRAFANA_VERSION` | `11.4.0` | Tag de la imagen oficial `grafana/grafana`. |
+| `GRAFANA_ADMIN_USER` | `admin` | Usuario admin inicial. |
+| `GRAFANA_ADMIN_PASSWORD` | `admin` | Password admin inicial. **Cambiar en producción**. |
+| `GRAFANA_LOG_LEVEL` | `warn` | Verbosidad del log de Grafana. |
+| `GRAFANA_PORT` | `3000` | Puerto del host para la UI de Grafana. |
+| `GRAFANA_LOKI_URL` | `http://loki:3100` | URL que usa Grafana para llegar a Loki (red compartida). |
+| `GRAFANA_DATA_DIR` | `./data/grafana` | Directorio del host para el SQLite de Grafana, plugins, etc. |
+| `GRAFANA_CPU_RESERVATION` | `0.1` | CPU mínimo reservado. |
+| `GRAFANA_MEMORY_RESERVATION` | `128M` | Memoria mínima reservada. |
+| `GRAFANA_CPU_LIMIT` | `1.0` | Tope de CPU. |
+| `GRAFANA_MEMORY_LIMIT` | `512M` | Tope de memoria. |
 
 ### S3 / MinIO (solo cuando `LOKI_STORAGE_BACKEND=s3`)
 
