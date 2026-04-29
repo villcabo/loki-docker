@@ -140,12 +140,13 @@
       "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
       "id": 4,
       "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
         "orientation": "horizontal",
         "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
-        "textMode": "value_and_name"
+        "showUnfilled": true,
+        "valueMode": "color"
       },
       "pluginVersion": "13.0.1",
       "targets": [
@@ -175,7 +176,7 @@
         }
       ],
       "title": "Active inventory",
-      "type": "stat"
+      "type": "bargauge"
     },
     {
       "datasource": {"type": "loki", "uid": "${datasource}"},
