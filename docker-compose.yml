@@ -34,8 +34,8 @@ x-loki-resources: &loki-resources
   deploy:
     resources:
       reservations:
-        cpus: "0.25"
-        memory: 256M
+        cpus: "${LOKI_CPU_RESERVATION:-0.25}"
+        memory: ${LOKI_MEMORY_RESERVATION:-256M}
       limits:
         cpus: "${LOKI_CPU_LIMIT:-1.0}"
         memory: ${LOKI_MEMORY_LIMIT:-1G}
@@ -87,5 +87,5 @@ networks:
     name: loki-${LOKI_INSTANCE_NAME:-default}
     driver: bridge
   loki_router:
-    name: ${LOKI_NETWORK:-loki_router}
+    name: ${LOKI_ROUTER_NETWORK:-loki_router}
     external: true
