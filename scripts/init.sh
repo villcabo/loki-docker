@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Crea el directorio de datos definido en LOKI_DATA_DIR (o el default).
+# Creates the data directory defined in LOKI_DATA_DIR (or the default).
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

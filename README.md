@@ -1,92 +1,113 @@
 # Loki Docker
 
-Loki listo para producción en Docker Compose. Una instancia por sistema, recursos mínimos para que convivan varios en el mismo host.
+Production-ready Loki on Docker Compose. One instance per system, minimal resources so multiple instances can coexist on the same host.
 
-- **Loki:** v3.7.1 (pinneada)
-- **Modos:** `monolithic` (default) | `scalable` (SSD: read/write/backend)
-- **Storage:** `filesystem` (default, sin deps) | `s3` (MinIO externo)
-- **Recursos:** reserva `0.25 CPU / 256M`, limit `1 CPU / 1G`
-- **Retención default:** 90 días
+🇪🇸 [Versión en español](README.es.md)
 
-Ver `PRD.md` para el diseño completo.
+- **Loki:** v3.7.1 (pinned)
+- **Modes:** `monolithic` (default) | `scalable` (SSD: read/write/backend)
+- **Storage:** `filesystem` (default, no deps) | `s3` (external MinIO)
+- **Resources:** `0.25 CPU / 256M` reserved, `1 CPU / 1G` limit
+- **Default retention:** 90 days
+
+See `PRD.md` for the full design rationale.
 
 ---
 
-## Inicio rápido
+## Prerequisites
+
+The compose attaches Loki to an external Docker network called `loki_router`. This network must exist before starting Loki, and any service Loki needs to reach (MinIO, Grafana, etc) must also be attached to it.
 
 ```bash
-# 1. Configurar
-cp .env.example .env
-# editar .env: al menos LOKI_INSTANCE_NAME (y creds de MinIO si usás s3)
+docker network create --driver bridge loki_router
+```
 
-# 2. Crear el directorio de datos
+If you already have MinIO running on a different network, attach it:
+
+```bash
+docker network connect loki_router minio
+```
+
+---
+
+## Quick start
+
+```bash
+# 1. Configure
+cp .env.example .env
+# Edit .env: at minimum LOKI_INSTANCE_NAME (and S3 creds if using s3 backend)
+
+# 2. Create the data directory
 ./scripts/init.sh
 
-# 3. Levantar (el modo se lee de COMPOSE_PROFILES en .env)
+# 3. Fix ownership (Loki runs as uid 10001 inside the container)
+sudo chown -R 10001:10001 ./data/loki
+
+# 4. Bring it up (mode is read from COMPOSE_PROFILES in .env)
 docker compose up -d
 
-# 4. Verificar
+# 5. Verify
 docker compose ps
 curl -s http://localhost:3100/ready
 ```
 
-El modo (`monolithic` | `scalable`) y el backend (`filesystem` | `s3`) se controlan **enteramente desde `.env`** — no hace falta pasar `--profile` ni nada en CLI.
+The mode (`monolithic` | `scalable`) and backend (`filesystem` | `s3`) are controlled **entirely from `.env`** — no need to pass `--profile` or any flag in CLI.
 
 ---
 
-## Múltiples Lokis en el mismo host
+## Multiple Loki instances on the same host
 
-Cada sistema en su propia carpeta con su propio `.env`:
+Each system in its own folder with its own `.env`:
 
 ```
 /opt/loki/
-├── sistema-a/
-│   ├── docker-compose.yml    (symlink o copia)
-│   ├── .env                  (LOKI_INSTANCE_NAME=sistema-a, LOKI_HTTP_PORT=3100)
+├── system-a/
+│   ├── docker-compose.yml    (symlink or copy)
+│   ├── .env                  (LOKI_INSTANCE_NAME=system-a, LOKI_HTTP_PORT=3100)
 │   └── data/loki/
-└── sistema-b/
+└── system-b/
     ├── docker-compose.yml
-    ├── .env                  (LOKI_INSTANCE_NAME=sistema-b, LOKI_HTTP_PORT=3101)
+    ├── .env                  (LOKI_INSTANCE_NAME=system-b, LOKI_HTTP_PORT=3101)
     └── data/loki/
 ```
 
-Cada `.env` debe tener:
-- `LOKI_INSTANCE_NAME` único.
-- `LOKI_HTTP_PORT` / `LOKI_GRPC_PORT` distintos si bindean al host.
-- Si `s3`: `S3_BUCKET` único por sistema.
+Each `.env` must have:
+- A unique `LOKI_INSTANCE_NAME`.
+- Different `LOKI_HTTP_PORT` / `LOKI_GRPC_PORT` if they bind to the host.
+- A unique `S3_BUCKET` per system (when using `s3` backend).
 
 ---
 
-## Storage backend
+## Storage backends
 
 ### `filesystem` (default)
 
-- Chunks, índice y WAL en `LOKI_DATA_DIR` del host.
-- Sin dependencias externas.
-- Solo modo `monolithic`.
+- Chunks, index and WAL all live in `LOKI_DATA_DIR` on the host.
+- No external dependencies.
+- Works only with `monolithic` mode.
 
-### `s3` (MinIO externo)
+### `s3` (external MinIO)
 
-Pre-requisitos en MinIO:
+Prerequisites in MinIO:
 
-1. Crear bucket dedicado (`loki-<instance-name>`).
-2. Crear service account con policy de read/write sobre ese bucket.
-3. Setear `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` en `.env`.
+1. Create a dedicated bucket (`loki-<instance-name>`).
+2. Create a service account with read/write policy on that bucket.
+3. Set `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` in `.env`.
 
-Si el endpoint usa TLS auto-firmado o lo accedés por IP, ajustar `S3_INSECURE` y `S3_FORCE_PATH_STYLE` según corresponda.
+If your endpoint uses a self-signed cert or you access it by IP, adjust `S3_INSECURE` and `S3_FORCE_PATH_STYLE` accordingly.
 
 ---
 
 ## Multi-tenant (`X-Scope-OrgID`)
 
-- `LOKI_AUTH_ENABLED=false` (default): los clientes (Promtail/Alloy) **no** mandan `X-Scope-OrgID`. Todo va al tenant `fake`.
-- `LOKI_AUTH_ENABLED=true`: cada request debe incluir `X-Scope-OrgID: <nombre>` (p.ej. `account1`). Loki separa logs por tenant.
+- `LOKI_AUTH_ENABLED=false` (default): clients (Promtail/Alloy) **don't** send `X-Scope-OrgID`. Everything goes to the `fake` tenant.
+- `LOKI_AUTH_ENABLED=true`: every request must include `X-Scope-OrgID: <name>` (e.g. `account1`). Loki separates logs per tenant.
 
-Esto **no** es seguridad de red. Para proteger Loki de internet, usar reverse proxy (Traefik/nginx) con auth.
+This is **not** network security. To protect Loki from the internet, use a reverse proxy (Traefik/nginx) with auth.
 
 ---
 
-## Operación
+## Operations
 
 ```bash
 # Logs
@@ -95,13 +116,13 @@ docker compose logs -f loki
 # Stats
 docker stats $(docker compose ps -q)
 
-# Recargar config (sin downtime de datos en RAM, breve corte de API)
+# Reload config (brief API downtime, in-memory data preserved)
 docker compose restart loki
 
-# Apagar
+# Stop
 docker compose down
 
-# Apagar y borrar TODOS los datos (⚠️ destructivo)
+# Stop and DELETE all data (⚠️ destructive)
 docker compose down -v
 sudo rm -rf ./data/loki
 ```
@@ -110,29 +131,32 @@ sudo rm -rf ./data/loki
 
 ## Endpoints
 
-| Endpoint | Para qué |
-|----------|----------|
-| `GET /ready` | Healthcheck (200 cuando está listo) |
-| `GET /metrics` | Métricas Prometheus |
-| `POST /loki/api/v1/push` | Ingesta de logs (Promtail/Alloy) |
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /ready` | Healthcheck (200 when ready) |
+| `GET /metrics` | Prometheus metrics |
+| `POST /loki/api/v1/push` | Log ingest (Promtail/Alloy) |
 | `GET /loki/api/v1/query_range` | Queries (Grafana) |
 
 ---
 
 ## Troubleshooting
 
-**Loki no arranca, logs muestran "permission denied" en `/loki`:**
+**Loki won't start, logs show "permission denied" on `/loki`:**
 ```bash
 sudo chown -R 10001:10001 ./data/loki
 ```
 
-**`/ready` devuelve 503 con "ingester not ready":**
-Es normal los primeros ~30s. Si persiste, revisar `docker compose logs loki`.
+**`/ready` returns 503 with "ingester not ready":**
+Normal for the first ~30s. If it persists, check `docker compose logs loki`.
 
-**S3: "InvalidAccessKeyId" o "SignatureDoesNotMatch":**
-- Verificar credenciales en `.env`.
-- Confirmar `S3_FORCE_PATH_STYLE=true` para MinIO.
-- Si endpoint es `http://`, setear `S3_INSECURE=true`.
+**S3: "InvalidAccessKeyId" or "SignatureDoesNotMatch":**
+- Check the credentials in `.env`.
+- Confirm `S3_FORCE_PATH_STYLE=true` for MinIO.
+- If endpoint is `http://`, set `S3_INSECURE=true`.
 
-**Picos de CPU sincronizados entre varios Lokis:**
-El `compaction_interval=10m` corre a la vez en todos. Para desfasar, editar `config/loki-*.yaml` y darle un valor distinto a cada sistema (p.ej. `11m`, `13m`).
+**`network loki_router declared as external, but could not be found`:**
+Create it: `docker network create --driver bridge loki_router`.
+
+**Synchronized CPU spikes across multiple Lokis:**
+The default `compaction_interval=10m` runs at the same time on all instances. To stagger them, edit `config/loki-*.yaml` and give each system a different value (e.g. `11m`, `13m`).

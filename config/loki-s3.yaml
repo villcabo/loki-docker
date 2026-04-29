@@ -1,8 +1,8 @@
 # =============================================================================
-# Loki config — backend S3 (MinIO)
+# Loki config — S3 backend (MinIO)
 # =============================================================================
-# Chunks en MinIO externo. Índice TSDB y WAL siguen en disco local.
-# Compatible con monolithic y SSD (read/write/backend).
+# Chunks live in external MinIO. TSDB index and WAL stay on local disk.
+# Compatible with monolithic and SSD (read/write/backend) modes.
 # =============================================================================
 
 auth_enabled: ${LOKI_AUTH_ENABLED:-false}

@@ -1,8 +1,8 @@
 # =============================================================================
-# Loki config — backend FILESYSTEM
+# Loki config — FILESYSTEM backend
 # =============================================================================
-# Chunks, índice y WAL todo dentro de /loki (montado desde LOKI_DATA_DIR).
-# Single-node only. Para SSD multi-nodo, usar loki-s3.yaml.
+# Chunks, index and WAL all inside /loki (mounted from LOKI_DATA_DIR).
+# Single-node only. For multi-node SSD, use loki-s3.yaml.
 # =============================================================================
 
 auth_enabled: ${LOKI_AUTH_ENABLED:-false}
