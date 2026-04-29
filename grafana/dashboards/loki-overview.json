@@ -12,7 +12,7 @@
       }
     ]
   },
-  "description": "Overview of logs ingested by Loki — volume by level, top jobs, error counts, filtered log stream.",
+  "description": "Logs overview — required labels: system, service, instance, level.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -26,10 +26,7 @@
         "defaults": {
           "color": {"mode": "thresholds"},
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{"color": "blue", "value": null}]
-          },
+          "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]},
           "unit": "short"
         },
         "overrides": []
@@ -49,7 +46,7 @@
         {
           "datasource": {"type": "loki", "uid": "${datasource}"},
           "editorMode": "code",
-          "expr": "sum(count_over_time({job=~\"$job\", level=~\"$level\"} |~ \"(?i)$search\" [$__range]))",
+          "expr": "sum(count_over_time({system=~\"$system\", service=~\"$service\", instance=~\"$instance\", level=~\"$level\"} |~ \"(?i)$search\" [$__range]))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -63,13 +60,7 @@
         "defaults": {
           "color": {"mode": "thresholds"},
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {"color": "green", "value": null},
-              {"color": "red", "value": 1}
-            ]
-          },
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]},
           "unit": "short"
         },
         "overrides": []
@@ -89,7 +80,7 @@
         {
           "datasource": {"type": "loki", "uid": "${datasource}"},
           "editorMode": "code",
-          "expr": "sum(count_over_time({job=~\"$job\", level=~\"error|err|fatal|critical\"} [$__range]))",
+          "expr": "sum(count_over_time({system=~\"$system\", service=~\"$service\", instance=~\"$instance\", level=~\"error|err|fatal|critical\"} [$__range]))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -103,13 +94,7 @@
         "defaults": {
           "color": {"mode": "thresholds"},
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {"color": "yellow", "value": null},
-              {"color": "orange", "value": 50}
-            ]
-          },
+          "thresholds": {"mode": "absolute", "steps": [{"color": "yellow", "value": null}, {"color": "orange", "value": 50}]},
           "unit": "short"
         },
         "overrides": []
@@ -129,7 +114,7 @@
         {
           "datasource": {"type": "loki", "uid": "${datasource}"},
           "editorMode": "code",
-          "expr": "sum(count_over_time({job=~\"$job\", level=~\"warn|warning\"} [$__range]))",
+          "expr": "sum(count_over_time({system=~\"$system\", service=~\"$service\", instance=~\"$instance\", level=~\"warn|warning\"} [$__range]))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -141,34 +126,52 @@
       "datasource": {"type": "loki", "uid": "${datasource}"},
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "palette-classic"},
-          "mappings": []
+          "color": {"mode": "thresholds"},
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "purple", "value": null}]},
+          "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
       "id": 4,
       "options": {
-        "displayMode": "gradient",
-        "minVizHeight": 10,
-        "minVizWidth": 0,
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
         "orientation": "horizontal",
         "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
-        "showUnfilled": true
+        "textMode": "value_and_name"
       },
       "pluginVersion": "13.0.1",
       "targets": [
         {
           "datasource": {"type": "loki", "uid": "${datasource}"},
           "editorMode": "code",
-          "expr": "topk(5, sum by (job) (count_over_time({job=~\"$job\", level=~\"$level\"} [$__range])))",
-          "legendFormat": "{{job}}",
+          "expr": "count(count by (system) ({system=~\"$system\", service=~\"$service\", instance=~\"$instance\"}[$__range]))",
+          "legendFormat": "systems",
           "queryType": "instant",
           "refId": "A"
+        },
+        {
+          "datasource": {"type": "loki", "uid": "${datasource}"},
+          "editorMode": "code",
+          "expr": "count(count by (service) ({system=~\"$system\", service=~\"$service\", instance=~\"$instance\"}[$__range]))",
+          "legendFormat": "services",
+          "queryType": "instant",
+          "refId": "B"
+        },
+        {
+          "datasource": {"type": "loki", "uid": "${datasource}"},
+          "editorMode": "code",
+          "expr": "count(count by (instance) ({system=~\"$system\", service=~\"$service\", instance=~\"$instance\"}[$__range]))",
+          "legendFormat": "instances",
+          "queryType": "instant",
+          "refId": "C"
         }
       ],
-      "title": "Top jobs by volume",
-      "type": "bargauge"
+      "title": "Active inventory",
+      "type": "stat"
     },
     {
       "datasource": {"type": "loki", "uid": "${datasource}"},
@@ -206,7 +209,7 @@
           {"matcher": {"id": "byName", "options": "debug"}, "properties": [{"id": "color", "value": {"fixedColor": "gray", "mode": "fixed"}}]}
         ]
       },
-      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 4},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
       "id": 5,
       "options": {
         "legend": {"calcs": ["sum"], "displayMode": "table", "placement": "right", "showLegend": true},
@@ -216,7 +219,7 @@
         {
           "datasource": {"type": "loki", "uid": "${datasource}"},
           "editorMode": "code",
-          "expr": "sum by (level) (count_over_time({job=~\"$job\", level=~\"$level\"} |~ \"(?i)$search\" [$__interval]))",
+          "expr": "sum by (level) (count_over_time({system=~\"$system\", service=~\"$service\", instance=~\"$instance\", level=~\"$level\"} |~ \"(?i)$search\" [$__interval]))",
           "legendFormat": "{{level}}",
           "queryType": "range",
           "refId": "A"
@@ -227,8 +230,159 @@
     },
     {
       "datasource": {"type": "loki", "uid": "${datasource}"},
-      "gridPos": {"h": 14, "w": 24, "x": 0, "y": 12},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {"type": "linear"},
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {"group": "A", "mode": "none"},
+            "thresholdsStyle": {"mode": "off"}
+          },
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
       "id": 6,
+      "options": {
+        "legend": {"calcs": ["sum"], "displayMode": "table", "placement": "right", "showLegend": true},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "${datasource}"},
+          "editorMode": "code",
+          "expr": "sum by (service) (count_over_time({system=~\"$system\", service=~\"$service\", instance=~\"$instance\", level=~\"$level\"} |~ \"(?i)$search\" [$__interval]))",
+          "legendFormat": "{{service}}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Log volume by service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 6, "w": 8, "x": 0, "y": 12},
+      "id": 7,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showUnfilled": true
+      },
+      "pluginVersion": "13.0.1",
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "${datasource}"},
+          "editorMode": "code",
+          "expr": "topk(10, sum by (system) (count_over_time({system=~\"$system\", service=~\"$service\", instance=~\"$instance\", level=~\"$level\"} [$__range])))",
+          "legendFormat": "{{system}}",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Top systems by volume",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 6, "w": 8, "x": 8, "y": 12},
+      "id": 8,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showUnfilled": true
+      },
+      "pluginVersion": "13.0.1",
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "${datasource}"},
+          "editorMode": "code",
+          "expr": "topk(10, sum by (service) (count_over_time({system=~\"$system\", service=~\"$service\", instance=~\"$instance\", level=~\"$level\"} [$__range])))",
+          "legendFormat": "{{service}}",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Top services by volume",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]},
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 6, "w": 8, "x": 16, "y": 12},
+      "id": 9,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showUnfilled": true
+      },
+      "pluginVersion": "13.0.1",
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "${datasource}"},
+          "editorMode": "code",
+          "expr": "topk(10, sum by (service) (count_over_time({system=~\"$system\", service=~\"$service\", instance=~\"$instance\", level=~\"error|err|fatal|critical\"} [$__range])))",
+          "legendFormat": "{{service}}",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Top services by errors",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "${datasource}"},
+      "gridPos": {"h": 14, "w": 24, "x": 0, "y": 18},
+      "id": 10,
       "options": {
         "dedupStrategy": "none",
         "enableLogDetails": true,
@@ -243,7 +397,7 @@
         {
           "datasource": {"type": "loki", "uid": "${datasource}"},
           "editorMode": "code",
-          "expr": "{job=~\"$job\", level=~\"$level\"} |~ \"(?i)$search\"",
+          "expr": "{system=~\"$system\", service=~\"$service\", instance=~\"$instance\", level=~\"$level\"} |~ \"(?i)$search\"",
           "queryType": "range",
           "refId": "A"
         }
@@ -258,7 +412,7 @@
   "templating": {
     "list": [
       {
-        "current": {"selected": false, "text": "Loki", "value": "Loki"},
+        "current": {"selected": false, "text": "Loki Local", "value": "Loki Local"},
         "hide": 0,
         "includeAll": false,
         "label": "Datasource",
@@ -275,14 +429,48 @@
       {
         "current": {"selected": true, "text": ["All"], "value": ["$__all"]},
         "datasource": {"type": "loki", "uid": "${datasource}"},
-        "definition": "label_values(job)",
+        "definition": "label_values(system)",
         "hide": 0,
         "includeAll": true,
-        "label": "Job",
+        "label": "System",
         "multi": true,
-        "name": "job",
+        "name": "system",
         "options": [],
-        "query": {"label": "job", "refId": "LokiVariableQueryEditor-VariableQuery", "stream": "", "type": 1},
+        "query": {"label": "system", "refId": "LokiVariableQueryEditor-VariableQuery", "stream": "", "type": 1},
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {"selected": true, "text": ["All"], "value": ["$__all"]},
+        "datasource": {"type": "loki", "uid": "${datasource}"},
+        "definition": "label_values({system=~\"$system\"}, service)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": {"label": "service", "refId": "LokiVariableQueryEditor-VariableQuery", "stream": "{system=~\"$system\"}", "type": 1},
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {"selected": true, "text": ["All"], "value": ["$__all"]},
+        "datasource": {"type": "loki", "uid": "${datasource}"},
+        "definition": "label_values({system=~\"$system\", service=~\"$service\"}, instance)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Instance",
+        "multi": true,
+        "name": "instance",
+        "options": [],
+        "query": {"label": "instance", "refId": "LokiVariableQueryEditor-VariableQuery", "stream": "{system=~\"$system\", service=~\"$service\"}", "type": 1},
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -323,6 +511,6 @@
   "timezone": "browser",
   "title": "Loki — Overview",
   "uid": "loki-overview",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

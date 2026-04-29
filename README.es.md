@@ -104,6 +104,67 @@ Esto **no** es seguridad de red. Para proteger Loki de internet, usar reverse pr
 
 ---
 
+## Contrato de labels requeridos
+
+Cada línea de log que entre a este Loki **debe** traer los siguientes labels. El dashboard provisto está armado alrededor de ellos; sin estos, los paneles aparecen vacíos.
+
+| Label | Requerido | Ejemplo | Para qué |
+|-------|-----------|---------|----------|
+| `system` | sí | `payment`, `billing`, `auth` | Dominio de negocio. |
+| `service` | sí | `account-service`, `transaction-service` | App específica dentro del system. |
+| `instance` | sí | `1`, `2`, `account-service-prod-1` | Identificador de réplica/nodo. Mandar `1` incluso si hay una sola. |
+| `level` | sí | `info`, `warn`, `error`, `debug` | Nivel de log. Requerido para los paneles de error/warning. |
+| `env` | opcional | `production`, `staging` | Ambiente. Útil cuando un Loki recibe múltiples ambientes. |
+
+> ⚠️ Loki **no** rechaza pushes por labels faltantes nativamente. El contrato se hace cumplir del lado del **cliente** (config de Alloy/Promtail) y se hace visible en el dashboard (logs sin `system`/`service`/`instance` simplemente no aparecen al filtrar).
+
+> ⚠️ **No** usar valores de alta cardinalidad como labels (`request_id`, `trace_id`, `user_id`, `session_id`). Poner eso en la línea de log; cada valor único crea un stream nuevo y explota el índice de Loki.
+
+### Ejemplo Alloy
+
+```hcl
+loki.source.file "app" {
+  targets = [{
+    __path__   = "/var/log/myapp/*.log",
+    system     = "payment",
+    service    = "account-service",
+    instance   = "1",
+    env        = "production",
+  }]
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+    headers = {
+      "X-Scope-OrgID" = "payment",  // por convención, tenant = system
+    }
+  }
+}
+```
+
+### Ejemplo Promtail
+
+```yaml
+scrape_configs:
+  - job_name: account-service
+    static_configs:
+      - targets: [localhost]
+        labels:
+          system:   payment
+          service:  account-service
+          instance: "1"
+          env:      production
+          __path__: /var/log/myapp/*.log
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+    tenant_id: payment
+```
+
+---
+
 ## Grafana (opcional)
 
 El stack incluye un servicio opcional de Grafana con datasource Loki auto-provisionada y un dashboard inicial. Para habilitarlo, descomentá en `.env`:
