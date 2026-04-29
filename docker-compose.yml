@@ -1,0 +1,105 @@
+name: loki-${LOKI_INSTANCE_NAME:-default}
+
+x-loki-common: &loki-common
+  image: grafana/loki:${LOKI_VERSION:-3.7.1}
+  restart: unless-stopped
+  user: "10001:10001"
+  volumes:
+    - ${LOKI_DATA_DIR:-./data/loki}:/loki
+    - ./config/loki-${LOKI_STORAGE_BACKEND:-filesystem}.yaml:/etc/loki/loki.yaml:ro
+  environment:
+    LOKI_AUTH_ENABLED: ${LOKI_AUTH_ENABLED:-false}
+    LOKI_RETENTION_PERIOD: ${LOKI_RETENTION_PERIOD:-2160h}
+    LOKI_INGESTION_RATE_MB: ${LOKI_INGESTION_RATE_MB:-4}
+    LOKI_INGESTION_BURST_MB: ${LOKI_INGESTION_BURST_MB:-6}
+    LOKI_MAX_QUERY_LENGTH: ${LOKI_MAX_QUERY_LENGTH:-2161h}
+    LOKI_ANALYTICS_REPORTING: ${LOKI_ANALYTICS_REPORTING:-false}
+    S3_ENDPOINT: ${S3_ENDPOINT:-}
+    S3_BUCKET: ${S3_BUCKET:-}
+    S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+    S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+    S3_REGION: ${S3_REGION:-us-east-1}
+    S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
+    S3_INSECURE: ${S3_INSECURE:-false}
+  logging:
+    driver: json-file
+    options:
+      max-size: "50m"
+      max-file: "3"
+  networks:
+    - loki
+    - s3
+
+x-loki-resources: &loki-resources
+  deploy:
+    resources:
+      reservations:
+        cpus: "0.25"
+        memory: 256M
+      limits:
+        cpus: "${LOKI_CPU_LIMIT:-1.0}"
+        memory: ${LOKI_MEMORY_LIMIT:-1G}
+
+# Sin healthcheck: la imagen oficial de Loki es distroless (no tiene sh, wget,
+# curl). El restart policy + Docker logs son suficientes para auto-recovery.
+
+services:
+  # ===========================================================================
+  # MODO MONOLITHIC (default)
+  # docker compose --profile monolithic up -d
+  # ===========================================================================
+  loki:
+    <<: [*loki-common, *loki-resources]
+    profiles: ["monolithic"]
+    container_name: loki-${LOKI_INSTANCE_NAME:-default}
+    command:
+      - "-config.file=/etc/loki/loki.yaml"
+      - "-config.expand-env=true"
+      - "-target=all"
+    ports:
+      - "${LOKI_HTTP_PORT:-3100}:3100"
+      - "${LOKI_GRPC_PORT:-9095}:9095"
+
+  # ===========================================================================
+  # MODO SCALABLE (SSD: read/write/backend)
+  # Requiere LOKI_STORAGE_BACKEND=s3.
+  # docker compose --profile scalable up -d
+  # ===========================================================================
+  loki-write:
+    <<: [*loki-common, *loki-resources]
+    profiles: ["scalable"]
+    container_name: loki-${LOKI_INSTANCE_NAME:-default}-write
+    command:
+      - "-config.file=/etc/loki/loki.yaml"
+      - "-config.expand-env=true"
+      - "-target=write"
+    ports:
+      - "${LOKI_HTTP_PORT:-3100}:3100"
+
+  loki-read:
+    <<: [*loki-common, *loki-resources]
+    profiles: ["scalable"]
+    container_name: loki-${LOKI_INSTANCE_NAME:-default}-read
+    command:
+      - "-config.file=/etc/loki/loki.yaml"
+      - "-config.expand-env=true"
+      - "-target=read"
+
+  loki-backend:
+    <<: [*loki-common, *loki-resources]
+    profiles: ["scalable"]
+    container_name: loki-${LOKI_INSTANCE_NAME:-default}-backend
+    command:
+      - "-config.file=/etc/loki/loki.yaml"
+      - "-config.expand-env=true"
+      - "-target=backend"
+
+networks:
+  loki:
+    name: loki-${LOKI_INSTANCE_NAME:-default}
+    driver: bridge
+  # Network externa donde vive el MinIO (creada por el stack de minio-docker).
+  # Solo se usa cuando LOKI_STORAGE_BACKEND=s3 y MinIO corre en otro compose.
+  s3:
+    name: ${LOKI_S3_NETWORK:-minio_router}
+    external: true
