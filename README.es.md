@@ -14,6 +14,24 @@ Ver `PRD.md` para el diseño completo.
 
 ---
 
+## Obtener el código
+
+Clonar con el nombre de carpeta por default `loki-docker`:
+
+```bash
+git clone https://github.com/villcabo/loki-docker.git
+cd loki-docker
+```
+
+O clonar con un nombre custom (recomendado cuando corrés **un Loki por sistema** en el mismo host, así cada instancia vive en su propio directorio):
+
+```bash
+git clone https://github.com/villcabo/loki-docker.git loki-docker-payment
+cd loki-docker-payment
+```
+
+---
+
 ## Prerequisitos
 
 El compose adjunta Loki a una network externa de Docker llamada `loki_router`. Esta network debe existir antes de levantar Loki, y cualquier servicio que Loki necesite alcanzar (MinIO, Grafana, etc.) debe estar también adjunto a ella.
