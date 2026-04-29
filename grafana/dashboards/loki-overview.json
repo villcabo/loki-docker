@@ -287,20 +287,27 @@
       "datasource": {"type": "loki", "uid": "${datasource}"},
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "palette-classic"},
-          "mappings": []
+          "color": {"mode": "thresholds"},
+          "custom": {
+            "align": "auto",
+            "cellOptions": {"type": "auto"},
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}
         },
-        "overrides": []
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "system"}, "properties": [{"id": "custom.width", "value": 200}]},
+          {"matcher": {"id": "byName", "options": "Volume"}, "properties": [{"id": "custom.cellOptions", "value": {"type": "gauge", "mode": "gradient", "valueDisplayMode": "color"}}]}
+        ]
       },
       "gridPos": {"h": 6, "w": 8, "x": 0, "y": 12},
       "id": 7,
       "options": {
-        "displayMode": "gradient",
-        "minVizHeight": 10,
-        "minVizWidth": 0,
-        "orientation": "horizontal",
-        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
-        "showUnfilled": true
+        "cellHeight": "sm",
+        "footer": {"countRows": false, "fields": "", "reducer": ["sum"], "show": false},
+        "showHeader": true,
+        "sortBy": [{"desc": true, "displayName": "Volume"}]
       },
       "pluginVersion": "13.0.1",
       "targets": [
@@ -308,32 +315,39 @@
           "datasource": {"type": "loki", "uid": "${datasource}"},
           "editorMode": "code",
           "expr": "topk(10, sum by (system) (count_over_time({system=~\"$system\", service=~\"$service\", instance=~\"$instance\", level=~\"$level\"} [$__range])))",
-          "legendFormat": "{{system}}",
+          "instant": true,
           "queryType": "instant",
           "refId": "A"
         }
       ],
       "title": "Top systems by volume",
-      "type": "bargauge"
+      "transformations": [
+        {"id": "reduce", "options": {"reducers": ["lastNotNull"]}},
+        {"id": "organize", "options": {"excludeByName": {}, "indexByName": {}, "renameByName": {"Field": "system", "Last *": "Volume"}}}
+      ],
+      "type": "table"
     },
     {
       "datasource": {"type": "loki", "uid": "${datasource}"},
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "palette-classic"},
-          "mappings": []
+          "color": {"mode": "thresholds"},
+          "custom": {"align": "auto", "cellOptions": {"type": "auto"}, "inspect": false},
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}
         },
-        "overrides": []
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "service"}, "properties": [{"id": "custom.width", "value": 220}]},
+          {"matcher": {"id": "byName", "options": "Volume"}, "properties": [{"id": "custom.cellOptions", "value": {"type": "gauge", "mode": "gradient", "valueDisplayMode": "color"}}]}
+        ]
       },
       "gridPos": {"h": 6, "w": 8, "x": 8, "y": 12},
       "id": 8,
       "options": {
-        "displayMode": "gradient",
-        "minVizHeight": 10,
-        "minVizWidth": 0,
-        "orientation": "horizontal",
-        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
-        "showUnfilled": true
+        "cellHeight": "sm",
+        "footer": {"countRows": false, "fields": "", "reducer": ["sum"], "show": false},
+        "showHeader": true,
+        "sortBy": [{"desc": true, "displayName": "Volume"}]
       },
       "pluginVersion": "13.0.1",
       "targets": [
@@ -341,34 +355,39 @@
           "datasource": {"type": "loki", "uid": "${datasource}"},
           "editorMode": "code",
           "expr": "topk(10, sum by (service) (count_over_time({system=~\"$system\", service=~\"$service\", instance=~\"$instance\", level=~\"$level\"} [$__range])))",
-          "legendFormat": "{{service}}",
+          "instant": true,
           "queryType": "instant",
           "refId": "A"
         }
       ],
       "title": "Top services by volume",
-      "type": "bargauge"
+      "transformations": [
+        {"id": "reduce", "options": {"reducers": ["lastNotNull"]}},
+        {"id": "organize", "options": {"excludeByName": {}, "indexByName": {}, "renameByName": {"Field": "service", "Last *": "Volume"}}}
+      ],
+      "type": "table"
     },
     {
       "datasource": {"type": "loki", "uid": "${datasource}"},
       "fieldConfig": {
         "defaults": {
           "color": {"mode": "thresholds"},
+          "custom": {"align": "auto", "cellOptions": {"type": "auto"}, "inspect": false},
           "mappings": [],
-          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]},
-          "unit": "short"
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}
         },
-        "overrides": []
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "service"}, "properties": [{"id": "custom.width", "value": 220}]},
+          {"matcher": {"id": "byName", "options": "Errors"}, "properties": [{"id": "custom.cellOptions", "value": {"type": "gauge", "mode": "gradient", "valueDisplayMode": "color"}}]}
+        ]
       },
       "gridPos": {"h": 6, "w": 8, "x": 16, "y": 12},
       "id": 9,
       "options": {
-        "displayMode": "gradient",
-        "minVizHeight": 10,
-        "minVizWidth": 0,
-        "orientation": "horizontal",
-        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
-        "showUnfilled": true
+        "cellHeight": "sm",
+        "footer": {"countRows": false, "fields": "", "reducer": ["sum"], "show": false},
+        "showHeader": true,
+        "sortBy": [{"desc": true, "displayName": "Errors"}]
       },
       "pluginVersion": "13.0.1",
       "targets": [
@@ -376,13 +395,17 @@
           "datasource": {"type": "loki", "uid": "${datasource}"},
           "editorMode": "code",
           "expr": "topk(10, sum by (service) (count_over_time({system=~\"$system\", service=~\"$service\", instance=~\"$instance\", level=~\"error|err|fatal|critical\"} [$__range])))",
-          "legendFormat": "{{service}}",
+          "instant": true,
           "queryType": "instant",
           "refId": "A"
         }
       ],
       "title": "Top services by errors",
-      "type": "bargauge"
+      "transformations": [
+        {"id": "reduce", "options": {"reducers": ["lastNotNull"]}},
+        {"id": "organize", "options": {"excludeByName": {}, "indexByName": {}, "renameByName": {"Field": "service", "Last *": "Errors"}}}
+      ],
+      "type": "table"
     },
     {
       "datasource": {"type": "loki", "uid": "${datasource}"},
