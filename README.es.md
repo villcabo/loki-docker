@@ -265,6 +265,28 @@ docker compose up -d grafana
 
 La pantalla de login ahora muestra un botón "Sign in with Keycloak" además del form local de admin. La cuenta admin local **se mantiene como break-glass** — en cualquier momento podés loguearte por `/login` con `admin` + la password que hayas seteado, incluso si Keycloak está caído.
 
+### Modelo de permisos: Grafana-managed (default) vs Keycloak-managed
+
+Elegís **dónde se deciden los roles** con dos env vars:
+
+| Variable | Default | Qué hace |
+|----------|---------|----------|
+| `GRAFANA_OIDC_SKIP_ROLE_SYNC` | `true` | Si es true, Grafana ignora cualquier rol del token de Keycloak. Los roles se manejan enteramente en la UI de Grafana. |
+| `GRAFANA_OIDC_DEFAULT_ROLE` | `None` | Rol asignado a un usuario nuevo en su primer login. `None` = sin permisos (el user ve Grafana pero ningún folder/dashboard). |
+
+**(A) Grafana-managed (default, recomendado para equipos chicos):**
+
+1. Usuario se loguea con Keycloak → se autocrea en Grafana con rol `None`.
+2. Ve Grafana logueado pero **sin dashboards, sin folders, sin nada**.
+3. Vos como Admin, vas a **Administration → Users**, lo buscás, le asignás rol (Viewer / Editor / Admin) o lo metés en un Team / le das permisos por folder.
+4. En logins siguientes, Grafana **mantiene el rol que vos asignaste** (no se resyncea desde Keycloak).
+
+**Bootstrap (la primera vez):** logueate una vez con el `admin` local + password, buscá tu propio user (el que se creó vía Keycloak) en Users, click **"Make admin"**. Desde ahí, tu identidad Keycloak tiene rol Admin.
+
+**(B) Keycloak-managed:**
+
+Setear `GRAFANA_OIDC_SKIP_ROLE_SYNC=false` y `GRAFANA_OIDC_DEFAULT_ROLE=Viewer`. Los roles fluyen desde Keycloak (el JMESPath mapea roles de Keycloak `grafana-admin` / `grafana-editor` → roles de Grafana). El Admin en Grafana **no puede sobreescribir** — cada login resyncea desde el token.
+
 ---
 
 ## Referencia de configuración

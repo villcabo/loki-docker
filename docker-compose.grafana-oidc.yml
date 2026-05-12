@@ -19,4 +19,14 @@ services:
       GF_AUTH_GENERIC_OAUTH_USE_PKCE: ${GRAFANA_OIDC_USE_PKCE:-true}
       GF_AUTH_GENERIC_OAUTH_USE_REFRESH_TOKEN: ${GRAFANA_OIDC_USE_REFRESH_TOKEN:-true}
       GF_AUTH_OAUTH_ALLOW_INSECURE_EMAIL_LOOKUP: ${GRAFANA_OIDC_ALLOW_INSECURE_EMAIL_LOOKUP:-false}
+      # Permission model:
+      #   - SKIP_ORG_ROLE_SYNC=true + AUTO_ASSIGN_ORG_ROLE=None
+      #       Grafana ignores roles from Keycloak; new users land with no role
+      #       and see nothing until a Grafana Admin grants them access.
+      #   - SKIP_ORG_ROLE_SYNC=false + JMESPath role mapping
+      #       Roles flow from Keycloak. Admin in Grafana cannot override them
+      #       (next login overwrites).
+      GF_AUTH_GENERIC_OAUTH_SKIP_ORG_ROLE_SYNC: ${GRAFANA_OIDC_SKIP_ROLE_SYNC:-true}
+      GF_USERS_AUTO_ASSIGN_ORG: "true"
+      GF_USERS_AUTO_ASSIGN_ORG_ROLE: ${GRAFANA_OIDC_DEFAULT_ROLE:-None}
       GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:?GRAFANA_ROOT_URL is required for OAuth redirect (e.g. http://grafana.example.com)}
