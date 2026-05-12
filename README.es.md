@@ -47,8 +47,8 @@ docker network connect loki_router minio
 ## Inicio rápido
 
 ```bash
-# 1. Configurar
-cp .env.example .env
+# 1. Configurar — la primera vez crea .env a partir de .env.example
+./scripts/env-sync.sh
 # Editar .env: al menos LOKI_INSTANCE_NAME (y creds de S3 si usás backend s3)
 
 # 2. Crear el directorio de datos y ajustar ownership (uid 10001 en el contenedor)
@@ -61,6 +61,8 @@ docker compose up -d
 docker compose ps
 curl -s http://localhost:3100/ready
 ```
+
+> 💡 **Después de `git pull`**, volvé a correr `./scripts/env-sync.sh` para fusionar las nuevas variables del template en tu `.env` sin perder ningún valor que hayás sobreescrito. Muestra un diff y pide confirmación antes de escribir; siempre guarda un backup con timestamp del `.env` anterior.
 
 El modo (`monolithic` | `scalable`) y el backend (`filesystem` | `s3`) se controlan **enteramente desde `.env`** — no hace falta pasar `--profile` ni nada en CLI.
 
