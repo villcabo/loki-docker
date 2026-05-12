@@ -205,6 +205,66 @@ Per-tenant naming convention: by default the tenant equals `LOKI_INSTANCE_NAME`.
 
 ---
 
+## Keycloak SSO for Grafana (optional)
+
+Skip user management in Grafana itself — delegate authentication to your existing Keycloak. Built as another compose override so it's strictly opt-in.
+
+### 1. Create the client in Keycloak
+
+| Field | Value |
+|-------|-------|
+| Client ID | of your choice (e.g. `grafana-loki-qa`) — one per environment is recommended |
+| Client type | OpenID Connect |
+| Client authentication | **On** (confidential — generates a client secret) |
+| Standard flow | Enabled |
+| Direct access grants | Disabled |
+| Valid redirect URIs | `<GRAFANA_ROOT_URL>/login/generic_oauth` |
+| Web origins | `<GRAFANA_ROOT_URL>` |
+
+Under **Client scopes** make sure the assigned scopes include `openid`, `profile`, `email`.
+
+To map Keycloak roles → Grafana roles (Admin / Editor / Viewer), add a **mapper** to the client's dedicated scope:
+
+| Mapper field | Value |
+|--------------|-------|
+| Mapper type | User Client Role (or Realm Role) |
+| Token Claim Name | `roles` |
+| Add to ID token / access token / userinfo | All ON |
+| Multivalued | ON |
+
+Then in Keycloak, define roles like `grafana-admin`, `grafana-editor` and assign them to users. Anyone with no matching role becomes a Viewer.
+
+### 2. Wire it up in `.env`
+
+```bash
+# Append the OIDC override to your existing COMPOSE_FILE chain
+COMPOSE_FILE=docker-compose.yml:docker-compose.grafana.yml:docker-compose.grafana-oidc.yml
+
+# Public URL of this Grafana — must match the Keycloak redirect URI
+GRAFANA_ROOT_URL=http://minioproapp.example.com:3300
+
+# Client credentials from Keycloak
+GRAFANA_OIDC_CLIENT_ID=grafana-loki-qa
+GRAFANA_OIDC_CLIENT_SECRET=<from Keycloak Credentials tab>
+
+# Keycloak realm endpoints
+GRAFANA_OIDC_AUTH_URL=https://keycloak.example.com/realms/<realm>/protocol/openid-connect/auth
+GRAFANA_OIDC_TOKEN_URL=https://keycloak.example.com/realms/<realm>/protocol/openid-connect/token
+GRAFANA_OIDC_USERINFO_URL=https://keycloak.example.com/realms/<realm>/protocol/openid-connect/userinfo
+```
+
+See `.env.example` for the full list of tunables (auto-login, role mapping JMESPath, allowed domains, TLS skip, PKCE, etc).
+
+### 3. Restart Grafana
+
+```bash
+docker compose up -d grafana
+```
+
+The login page now shows a "Sign in with Keycloak" button alongside the local admin form. The local admin account is **kept as a break-glass fallback** — anytime you can still log in at `/login` with `admin` + the password you set, even when Keycloak is down.
+
+---
+
 ## Configuration reference
 
 All variables are read from `.env`. Every value is optional — if commented out or missing, the default below is applied.
